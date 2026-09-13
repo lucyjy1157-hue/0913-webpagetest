@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="2026년 일정과 집중 시간을 함께 관리하는 캘린더" />
+    <meta name="theme-color" content="#5b36c9" />
+    <title>보라 — 2026 캘린더 & 포커스</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235b36c9'/%3E%3Cpath d='M9 9h14v14H9z' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M9 14h14M13 7v4M19 7v4' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="statusViewer" class="share-view" hidden>
+      <main class="share-card" aria-live="polite">
+        <a class="brand brand--center" href="./" aria-label="보라 캘린더로 이동">
+          <span class="brand-mark" aria-hidden="true"><span></span></span>
+          <span>보라</span>
+        </a>
+        <div class="share-status-mark" id="shareStatusMark" aria-hidden="true"></div>
+        <p class="eyebrow" id="shareEyebrow">집중 중</p>
+        <h1 id="shareTitle">지금 집중하고 있어요</h1>
+        <div class="share-time" id="shareTime">25:00</div>
+        <p class="share-until" id="shareUntil"></p>
+        <p class="share-note" id="shareNote"></p>
+        <a class="button button--primary share-home" href="./">나도 계획 시작하기</a>
+      </main>
+    </div>
+
+    <div id="app" class="app-shell">
+      <header class="topbar">
+        <div class="brand brand-editor" aria-label="닉네임 설정">
+          <span class="brand-mark" aria-hidden="true"><span></span></span>
+          <input id="nicknameInput" maxlength="16" autocomplete="off" aria-label="닉네임" value="보라" />
+        </div>
+        <p class="date-summary" id="dateSummary">2026년 9월 13일 일요일</p>
+        <div class="header-actions">
+          <span class="live-chip" id="liveChip"><span></span><b>준비</b></span>
+          <button class="icon-button" id="shareButton" type="button" aria-label="현재 타이머 상태 공유" title="상태 공유">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.7 12.8l6.6 3.8M15.3 7.4l-6.6 3.8M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm12 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="side-panel">
+          <section class="todo-panel" aria-labelledby="todoHeading">
+            <div class="panel-title-row">
+              <div>
+                <p class="eyebrow" id="selectedDateLabel">9월 13일</p>
+                <h2 id="todoHeading">오늘의 할 일</h2>
+              </div>
+              <span class="count-badge" id="todoCount">0 / 0</span>
+            </div>
+            <form class="todo-form" id="todoForm">
+              <input id="todoInput" maxlength="80" autocomplete="off" placeholder="할 일을 입력하세요" aria-label="새 할 일" />
+              <button type="submit" class="add-button" aria-label="할 일 추가">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+            </form>
+            <ul class="todo-list" id="todoList"></ul>
+            <div class="empty-state" id="todoEmpty">
+              <span class="empty-icon" aria-hidden="true"></span>
+              <p>아직 등록된 할 일이 없어요.</p>
+              <small>오늘 꼭 끝내고 싶은 일부터 적어보세요.</small>
+            </div>
+          </section>
+
+          <section class="timer-panel" aria-labelledby="timerHeading">
+            <div class="timer-topline">
+              <div>
+                <p class="eyebrow">POMODORO</p>
+                <h2 id="timerHeading">집중 타이머</h2>
+              </div>
+              <button class="text-button" id="settingsButton" type="button" aria-expanded="false" aria-controls="timerSettings">시간 설정</button>
+            </div>
+
+            <div class="timer-settings" id="timerSettings" hidden>
+              <label>집중 <span><input id="focusMinutes" type="number" min="1" max="180" value="25" />분</span></label>
+              <label>짧은 휴식 <span><input id="shortBreakMinutes" type="number" min="1" max="60" value="5" />분</span></label>
+              <label>긴 휴식 <span><input id="longBreakMinutes" type="number" min="1" max="120" value="15" />분</span></label>
+              <label>세트 수 <span><input id="totalSets" type="number" min="1" max="12" value="4" />회</span></label>
+              <button type="button" class="settings-apply" id="applySettings">적용하기</button>
+            </div>
+
+            <div class="timer-stage">
+              <div class="timer-meta">
+                <span id="timerMode">집중 시간</span>
+                <span id="setLabel">1 / 4 세트</span>
+              </div>
+              <div class="timer-display" id="timerDisplay" role="timer" aria-live="off">25:00</div>
+              <div class="progress-track" aria-hidden="true"><span id="timerProgress"></span></div>
+            </div>
+            <div class="timer-controls">
+              <button class="button button--primary" id="startPauseButton" type="button">집중 시작</button>
+              <button class="button button--quiet" id="resetButton" type="button">초기화</button>
+              <button class="icon-button icon-button--inverse" id="skipButton" type="button" aria-label="다음 단계로 건너뛰기" title="다음 단계">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 5 9 7-9 7V5Zm11 0v14"/></svg>
+              </button>
+            </div>
+          </section>
+        </aside>
+
+        <section class="calendar-panel" aria-labelledby="calendarHeading">
+          <div class="section-heading calendar-heading">
+            <div>
+              <p class="eyebrow">YEAR PLANNER · 2026</p>
+              <h1 id="calendarHeading"><span id="monthNumber">09</span><small id="monthName">SEPTEMBER</small></h1>
+            </div>
+            <div class="month-nav" aria-label="월 이동">
+              <button class="icon-button" id="prevMonth" type="button" aria-label="이전 달">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <button class="today-button" id="todayButton" type="button">오늘</button>
+              <button class="icon-button" id="nextMonth" type="button" aria-label="다음 달">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="weekdays" aria-hidden="true">
+            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+          </div>
+          <div class="calendar-grid" id="calendarGrid" role="grid" aria-label="2026년 월간 캘린더"></div>
+          <div class="calendar-legend">
+            <span><i class="legend-dot legend-dot--todo"></i>할 일</span>
+            <span><i class="legend-dot legend-dot--focus"></i>집중 기록</span>
+          </div>
+        </section>
+
+        <section class="stats-panel" aria-labelledby="statsHeading">
+          <div class="stats-title">
+            <p class="eyebrow">FOCUS REPORT</p>
+            <h2 id="statsHeading">집중 통계</h2>
+            <p id="statsDateText">선택한 날짜의 집중 기록입니다.</p>
+          </div>
+          <div class="metric">
+            <span>선택한 날</span>
+            <strong id="selectedMinutes">0<small>분</small></strong>
+          </div>
+          <div class="metric">
+            <span>이번 달</span>
+            <strong id="monthMinutes">0<small>분</small></strong>
+          </div>
+          <div class="metric">
+            <span>완료한 세트</span>
+            <strong id="completedSessions">0<small>회</small></strong>
+          </div>
+          <div class="week-chart-wrap">
+            <div class="chart-header"><span>최근 7일</span><b id="weekTotal">0분</b></div>
+            <div class="week-chart" id="weekChart" aria-label="최근 7일 집중 시간 막대그래프"></div>
+          </div>
+        </section>
+      </main>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
